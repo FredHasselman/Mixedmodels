@@ -1,0 +1,254 @@
+# Generalized Mixed Models
+Fred Hasselman  
+02/06/2017  
+
+
+
+
+
+# **Introduction to the GMM family**
+
+Many different terms are used to describe some form of the hierarchical *Generalized Mixed Model* family of statistical models, or *GeMMs*  for short (pronounce like the precious stones, *gems*). 
+
+## What's in a name?
+
+* _Generalized_ refers to the fact that we can use any distribution from [the exponential family](https://en.wikipedia.org/wiki/Exponential_family#Table_of_distributions) as a model for our response variable(s), because we know the [functions that link](https://en.wikipedia.org/wiki/Hierarchical_generalized_linear_model#Models_with_different_distributions_and_link_functions) the parameters of those distributions. 
+* _Mixed_ refers to possibility to have different types of effects in the model, *fixed* and *random* effects.
+    + Random effect structures can be used to model dependencies in the data ([heteroscedasticity](http://www.dummies.com/education/economics/econometrics/how-to-distinguish-between-homoskedastic-and-heteroskedastic-disturbances/)) that affects the eficiency and accuracy of OLS estimators.
+    + Random effect structures can be *simple*, *autoregressive*, hierarchically *nested*, *cross-classified*, of the *multiple membership* kind or any combination of those. 
+* _GeMMs_ can be *linear* or *nonlinear* models, and to estimate model parameters (OLS cannot be used) different methods are available; *Maximum Likelihood* estimators, *MCMC* and *Bayesian* methods. There are also extensions based on *vector autoregression (VAR)* and *LASSO*.
+
+
+### When to use GeMMs? {-}
+
+**Always**  
+
+### Why? {-}
+
+The *General Linear Model*  (the classical regression models and ANOVA variations) are just special cases of GeMMs in which the following assumptions hold (cf. Field):
+
+* _Linear additivity_ of effects
+* _Normality_ something or other
+* _Homogeneity_ of variance
+* _Independence_ of observations
+
+For real world data, especially in the social and life sciences, at least one of those assumptions will be violated. So the answer to the *Why?* question is: **Because we need more realistic statistical models!**.
+
+## `R` packages
+
+We'll use the `lme4` package and some additional tools.
+
+On thing you will notice is that `lme4` no longer provides p-values for fixed effects, here's what the authors have to say about it:
+
+>  One of the most frequently asked questions about 'lme4' is "how do I calculate p-values for estimated parameters?" Previous versions of `lme4` provided the `mcmcsamp` function, which efficiently generated a Markov chain Monte Carlo sample from the posterior distribution of the parameters, assuming flat (scaled likelihood) priors. Due to difficulty in constructing a version of 'mcmcsamp' that was reliable even in cases where the estimated random effect variances were near zero (e.g. <https://stat.ethz.ch/pipermail/r-sig-mixed-models/2009q4/003115.html> `mcmcsamp` has been withdrawn (or more precisely, not updated to work with `lme4` versions greater than 1.0.0).
+
+
+
+
+```r
+install.packages(c("lme4","lmerTest","pbkrtest","nlme","sjPlot"), dependencies = TRUE, repos = "https://cloud.r-project.org")
+```
+
+
+We'll also use some standard packages for plotting data and model results.
+
+```r
+install.packages(c("lattice","latticeExtra","ggplot2","gridExtra","scales"), dependencies = TRUE, repos = "https://cloud.r-project.org")
+```
+
+
+These libraries are not essential, but generally will enhance you `R` experience.
+
+```r
+install.packages(c("plyr","tidyverse","rio"), dependencies = TRUE, repos = "https://cloud.r-project.org")
+```
+
+
+## Online sources
+
+Here is a (non-exhaustive) list of great sources:
+
+* [lme4: Mixed-effects modeling with R (Bates)](http://lme4.r-forge.r-project.org/lMMwR/lrgprt.pdf)
+    + [lme4 vignette](https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf)
+    + [Mixed models in R using `lme4` and `nlme`](https://socserv.socsci.mcmaster.ca/jfox/Books/Companion/appendix/Appendix-Mixed-Models.pdf)
+    + [Writing up *lmer* results](https://web.stanford.edu/class/psych253/section/section_8/lmer_examples.html)
+    + [Getting started with mixed effect models in r (Knowles, R-bloggers)](https://www.r-bloggers.com/getting-started-with-mixed-effect-models-in-r/)
+    + [General guide to mixed models in r](http://ase.tufts.edu/gsc/gradresources/guidetomixedmodelsinr/mixed%20model%20guide.html)
+* [Center for multilevel modeling](http://www.bristol.ac.uk/cmm/)
+    + From the creators of MLwiN
+* [Multilevel Analysis (Hox)](https://stats.idre.ucla.edu/other/examples/ma-hox/)
+    + Code examples from book in `HLM`, `SAS`, `Stata`, `R`
+* [Introduction to Multilevel Modeling (Kreft & de Leeuw)](https://stats.idre.ucla.edu/other/examples/imm/)
+    + Code examples from book in `HLM`, `R`, `SPSS`, `Mplus`, `SAS`, `Stata`
+* [Applied Longitudinal Data Analysis (Singer & Willett)](https://stats.idre.ucla.edu/other/examples/alda/)
+    + Code examples from book in `R`, `SPSS`, `Mplus`, `SAS`, `Stata`
+* [Using lme/lmer to fit 2 and 3 level longitudinal models (Rpsychologist)](http://rpsychologist.com/r-guide-longitudinal-lme-lmer)
+    + Excellent site with many examples
+* [Inferential Methods for Linear Mixed Models](http://www.maths.bath.ac.uk/~jjf23/mixchange/index.html)
+    + Includes examples for multivariate mutilevel modeling
+* [R to MLwiN](https://www.jstatsoft.org/article/view/v072i10)
+* [Power Analysis for Random Effects Models ()](http://jakewestfall.org/publications/JWK_AnnRev.pdf)
+    + Provides `R`, `SPSS` and `SAS` code
+    + Also see the [online tool](https://jakewestfall.shinyapps.io/two_factor_power/) and [additional topics supplement](http://jakewestfall.org/publications/JWK_AnnRev_Appendix.pdf)
+* [Stan. Bayesian inference for multilevel GLMMs and more](http://mc-stan.org/interfaces/)
+* [Generalized Additive Mixed Models (GAMM) for for modeling timeseries data](http://www.sfs.uni-tuebingen.de/~jvanrij/Tutorial/GAMM.html)
+    + (Examples)[http://www.sfs.uni-tuebingen.de/~hbaayen/publications/supplementCave.pdf]
+* [Multilevel Analysis (Snijder & Boskers)](https://stats.idre.ucla.edu/other/examples/ma-snijders/)
+    + Code examples from book in `HLM`, `Mplus`, `SAS`, `Stata`
+
+
+# **Random Effect Models**
+
+## Variance Components  {.tabset .tabset-fade .tabset-pills}  
+
+OLS vs. Random intercepts 
+
+### Assignment {-}
+ 
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+## Random intercepts {.tabset .tabset-fade .tabset-pills}  
+
+Random intercepts at multiple levels
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+## Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
+
+Random intercepts & slopes
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution
+
+
+## Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
+
+Random intercepts & slopes
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+
+
+# **Best practices**
+
+## Centering predictors {.tabset .tabset-fade .tabset-pills}  
+
+To center... or not?
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+## Modeling strategies {.tabset .tabset-fade .tabset-pills}  
+
+Start small ... or start full?
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+
+
+## Testing random effects {.tabset .tabset-fade .tabset-pills}  
+
+Start small ... or start full?
+
+### Assignment {-}
+
+
+### Code {-}
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
+
+
+
+# **Multilevel model for change**
+
+## Time as a predictor {.tabset .tabset-fade .tabset-pills}  
+
+Random intercepts & slopes
+
+### Assignment {-}
+
+
+### Code {-} 
+
+
+```r
+# Use 
+
+```
+
+### Solution {-}
+
