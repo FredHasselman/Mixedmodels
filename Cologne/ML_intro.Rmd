@@ -282,7 +282,19 @@ Fit a model that considers the variation in the intercepts of the schools as a r
 + Schools are Level 2: We assume the school intercepts can be considered to be drawn from a normal distribution with $\mu = 0$ and unknown $\sigma_{u}^2$. Parameter $\sigma_{u}^2$ will be estimated from the data. 
 + Student scores will be considered to vary randomly around the mean of their respective schools. We will assume students in each school vary around the school mean in the same way, a normal distribution with $\mu = 0$ and unknown $\sigma_{e}^2$.
 + Use the function `lmer()` to model the data. It looks similar to `lm()` but you need to specify the random effect structure. Look at the manual, or if you can't get it to work, at the solutions.
-+ Add teaching style as a factor.
+
+### Adding the random effect structure
+
++ Add student as a random level: `(1|student.f)` and fit the model
+    - The `1` refers to a constant, an intercept
+    - The variable after `|` is the variable that groups togethter the data on this level.
++ Add school as a random level: `(1|student.f) + (1}school.f)` and fit the model
++ Indicate that students are in fact nested within schools: `(1|school.f/student.f)`
+     - There are more ways this can be achieves see 
+
+
+### Add teaching style as a factor.
+
 + Compare the the single level model to the variance components model
 
 
@@ -295,6 +307,10 @@ Variance components, seperate random effects for students and schools.
 library(lme4)
 library(lmerTest)
 
+# Only students
+fit50 <- lmer(y ~ xc + (1|student.f) ,data = df)
+summary(fit50)
+
 fit5a <- lmer(y ~ xc + (1|school.f) + (1|student.f) ,data = df)
 summary(fit5a)
 ````
@@ -306,58 +322,49 @@ fit5b <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
 summary(fit5a)
 ````
 
-```{r q7b, message=FALSE, warning=FALSE}
+
+### Add teachig style
+```{r q7c, message=FALSE, warning=FALSE}
 # Add teaching style
-fit6 <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
-summary(fit6)
+fit5c <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
+summary(fit5c)
+```
+
+### Compare the models
+```{r q7d, message=FALSE, warning=FALSE}
+anova(fit50,fit5a,fit5b,fit5c)
 ```
 
 
-
-
-## Random intercepts {.tabset .tabset-fade .tabset-pills}  
-
-Random intercepts at for schools.
-
-### Assignment {-}
-
-
-
-### Solution {-}
-
-```{r 1rand, collapse=TRUE}
-# Use 
-
-```
-
-
-
-## Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
+# Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
 
 Random intercepts & slopes
 
-### Assignment {-}
+## Assignment 
 
+Try to see wether teaching style explains slope variance of schools.
 
-### Code {-}
+## Solution
 
-```{r 2rand, collapse=TRUE}
-# Use 
-
-
+```{r 2rand, message=FALSE, warning=FALSE,eval=FALSE}
+# Add teaching style as a random slope
+fit5d <- lmer(y ~ xc + style.f + (style.f |school.f/student.f) ,data = df)
+summary(fit5d)
 ```
 
-### Solution
 
 
-## Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
 
-Random intercepts & slopes
+# Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
 
-### Assignment {-}
+Multilevel model for change
+
+## Assignment 
 
 
-### Code {-}
+
+
+## Solution 
 
 ```{r crosslvl, collapse=TRUE}
 # Use 
@@ -365,81 +372,16 @@ Random intercepts & slopes
 
 ```
 
-### Solution {-}
+
+
+# Time as a predictor {.tabset .tabset-fade .tabset-pills}  
 
 
 
-
-# **Best practices**
-
-## Centering predictors {.tabset .tabset-fade .tabset-pills}  
-
-To center... or not?
-
-### Assignment {-}
+## Assignment 
 
 
-### Code {-}
-
-```{r center, collapse=TRUE}
-# Use 
-
-
-```
-
-### Solution {-}
-
-
-## Modeling strategies {.tabset .tabset-fade .tabset-pills}  
-
-Start small ... or start full?
-
-### Assignment {-}
-
-
-### Code {-}
-
-```{r strategies, collapse=TRUE}
-# Use 
-
-
-```
-
-### Solution {-}
-
-
-
-
-## Testing random effects {.tabset .tabset-fade .tabset-pills}  
-
-Start small ... or start full?
-
-### Assignment {-}
-
-
-### Code {-}
-
-```{r randefftest, collapse=TRUE}
-# Use 
-
-
-```
-
-### Solution {-}
-
-
-
-
-# **Multilevel model for change**
-
-## Time as a predictor {.tabset .tabset-fade .tabset-pills}  
-
-Random intercepts & slopes
-
-### Assignment {-}
-
-
-### Code {-} 
+## Solution 
 
 ```{r change, collapse=TRUE}
 # Use 
@@ -447,5 +389,5 @@ Random intercepts & slopes
 
 ```
 
-### Solution {-}
+
 

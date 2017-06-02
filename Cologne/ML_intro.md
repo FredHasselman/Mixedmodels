@@ -23,6 +23,9 @@ Many different terms are used to describe some form of the hierarchical *General
 
 **Always**  
 
+Well, ok, have a look at the different [multilevel structures one can encounter in real data](http://www.bristol.ac.uk/cmm/learning/multilevel-models/data-structures.html)
+
+
 ### Why? {-}
 
 The *General Linear Model*  (the classical regression models and ANOVA variations) are just special cases of GeMMs in which the following assumptions hold (cf. Field):
@@ -97,13 +100,11 @@ Here is a (non-exhaustive) list of great sources:
     + Code examples from book in `HLM`, `Mplus`, `SAS`, `Stata`
 
 
-**Random Effect Models**
-
 # Classical linear regression  {.tabset .tabset-fade .tabset-pills}  
 
-OLS regression versus the variance components model.
+OLS regression of the example on the slides.
 
-## Assignment {-}
+## Assignment
  
 Let's repeat the example form the slides. Import the data from [Github](https://github.com/FredHasselman/Mixedmodels/tree/master/Cologne/AssignmentData), or run the code below and load it directly into R^[Importing SPSS files into R can sometimes lead to strange behaviour, because SPSS assigns both *variable* and *value* labels, which most software packages cannot handle. If you can't get rid of the labels, use `rio::export(df,"filename.ext")` and set `.ext` to `.csv` or `.xlsx`, then reload the file using `df <- rio::import("filename.ext")`].
 
@@ -121,47 +122,51 @@ df$style.f   <- factor(df$style, levels = c(-.5,.5), labels = c("informal style"
 df$school.f <- relevel(df$school.f, ref = "school 4")
 ```
 
-### First, look at the data. 
+### Look at the data. 
 
-    + Plot language ability `x` (at the start of the year) against `y` (at the end of the year) and mark each school with a shape or colour. 
-    + If you are new to `R`, just look at the solution and copy and run the code. Plot the predicted values.
++ Plot language ability `x` (at the start of the year) against `y` (at the end of the year) and mark each school with a shape or colour. 
++ If you are new to `R`, just look at the solution and copy and run the code. Plot the predicted values.
 
-2. Using the basic `R` stats functions we can fit a regression model for the entire sample: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
-    + Use the function `lm`. 
-    + If you are unfamiliar with the function, look at the manual entry by typing `?lm` in the console.
-    + Plot the predicted values.
+### Fit the global model.
+Using the basic `R` stats functions we can fit a regression model for the entire sample: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
 
-### Now, fit the model with an intercept for each school. This means adding the `school.f` variable. The use of factors in `R` is very convenient, you do not have to create dummy variables, `R` will do this for you. So we are looking for a model of the type: $Y_{i} = \beta_{0j} + \beta_{1} X_{ij} + \varepsilon_{ij},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ j = 1,2,\ldots,4$. 
-    + Plot the predicted values.
++ Use the function `lm`. 
++ If you are unfamiliar with the function, look at the manual entry by typing `?lm` in the console.
++ Plot the predicted values.
 
-### To fit the model with an intercept for each teaching style, we simply add the factor `style.f` variable. So we are looking for a model of the type: $Y_{ij} = \beta_{0k} + \beta_{1} X_{ik} + \varepsilon_{ik},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ k = 1,2$. 
-    + On the slides, the model was fitted to the grand-mean centered version of `x`. We will get back to centering data, the variable is in the dataset as `xc`. You could also calculate the variable yoursef using the function `scale`:
+### Fit the model with intercepts for schools.
+
+This means adding the `school.f` variable. The use of factors in `R` is very convenient, you do not have to create dummy variables, `R` will do this for you. So we are looking for a model of the type: $Y_{i} = \beta_{0j} + \beta_{1} X_{ij} + \varepsilon_{ij},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ j = 1,2,\ldots,4$. 
+
++ Plot the predicted values.
+
+### Fit the model with intercepts for teaching style.
+
+To fit the model with an intercept for each teaching style, we simply add the factor `style.f` variable. So we are looking for a model of the type: $Y_{ij} = \beta_{0k} + \beta_{1} X_{ik} + \varepsilon_{ik},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ k = 1,2$. 
+
++ On the slides, the model was fitted to the grand-mean centered version of `x`. We will get back to centering data, the variable is in the dataset as `xc`. You could also calculate the variable yoursef using the function `scale`:
 
 ```r
 df$xc <- scale(df$x, scale = FALSE)
 ```
-    + Plot the predicted values.
 
-5. To fit the model with both `school` and `teaching style` effects and just 1 random error term, we need dummy variables. They are already in the dataset. We should get a model of the type: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \beta_{2}\ Style_{i} + \beta_{3}\ d1_{i} + \beta_{4}\ d2_{i} +  \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
-    + Plot the predicted values.
++ Plot the predicted values.
 
-6. Compare the models using the function `anova()`.
+### Fit the model with an both school and teaching style effects.
+
+To fit the model with both `school` and `teaching style` effects and just 1 random error term, we need dummy variables. They are already in the dataset. We should get a model of the type: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \beta_{2}\ Style_{i} + \beta_{3}\ d1_{i} + \beta_{4}\ d2_{i} +  \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
+
++ Plot the predicted values.
+
+### Compare the models using the function `anova()`.
 
 
-## Solution {-}
+
+## Solution
 
 ### Plot the data
 
 ```r
-# Using Lattice
-library(lattice)
-xyplot(y ~ x, groups = school.f, data = df, auto.key = TRUE)
-```
-
-![](ML_intro_files/figure-html/q1-1.png)<!-- -->
-
-```r
-
 # Using ggplot2
 library(ggplot2)
 ggplot(df, aes(x=x,y=y,group=school.f)) +
@@ -169,7 +174,7 @@ ggplot(df, aes(x=x,y=y,group=school.f)) +
   theme_bw() 
 ```
 
-![](ML_intro_files/figure-html/q1-2.png)<!-- -->
+![](ML_intro_files/figure-html/q1-1.png)<!-- -->
 
 ### Fit the global model.
 
@@ -301,7 +306,7 @@ ggplot(df, aes(x=xc,y=pred3,colour=style.f,shape=school.f)) +
 
 ![](ML_intro_files/figure-html/q4-1.png)<!-- -->
 
-### Fit the model with an interaction between school and teaching style.
+### Fit the model with an both school and teaching style effects.
 
 ```r
 # Fit the model and display a summary of the results
@@ -372,37 +377,88 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # Variance Components  {.tabset .tabset-fade .tabset-pills}  
 
-OLS regression versus the variance components model.
+Now we will start using random effects...
 
 ## Assignment 
 
-
 ### The empty multilevel model
 
-* Fit a model that considers the variation in the intercepts of the schools as a random variation around the grand mean. 
-     + Schools are Level 2: We assume the school intercepts can be considered to be drawn from a normal distribution with $\mu = 0$ and unknown $\sigma_{u}^2$. Parameter $\sigma_{u}^2$ will be estimated from the data. 
-     + Student scores will be considered to vary randomly around the mean of their respective schools. We will assume students in each school vary around the school mean in the same way, a normal distribution with $\mu = 0$ and unknown $\sigma_{e}^2$.
-     + Use the function `lmer()` to model the data. It looks similar to `lm()` but you need to specify the random effect structure. Look at the manual, or if you can't get it to work, at the solutions.
-     + Add teaching style as a factor.
-     + Compare the the single level model to the variance components model
+Fit a model that considers the variation in the intercepts of the schools as a random variation around the grand mean.
+
++ Schools are Level 2: We assume the school intercepts can be considered to be drawn from a normal distribution with $\mu = 0$ and unknown $\sigma_{u}^2$. Parameter $\sigma_{u}^2$ will be estimated from the data. 
++ Student scores will be considered to vary randomly around the mean of their respective schools. We will assume students in each school vary around the school mean in the same way, a normal distribution with $\mu = 0$ and unknown $\sigma_{e}^2$.
++ Use the function `lmer()` to model the data. It looks similar to `lm()` but you need to specify the random effect structure. Look at the manual, or if you can't get it to work, at the solutions.
+
+### Adding the random effect structure
+
++ Add student as a random level: `(1|student.f)` and fit the model
+    - The `1` refers to a constant, an intercept
+    - The variable after `|` is the variable that groups togethter the data on this level.
++ Add school as a random level: `(1|student.f) + (1}school.f)` and fit the model
++ Indicate that students are in fact nested within schools: `(1|school.f/student.f)`
+     - There are more ways this can be achieves see 
+
+
+### Add teaching style as a factor.
+
++ Compare the the single level model to the variance components model
 
 
 ## Solution
 
- Variance components
+### The empty multilevel model
+
+Variance components, seperate random effects for students and schools.
 
 ```r
 library(lme4)
 library(lmerTest)
 
-fit5 <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
-summary(fit5)
+# Only students
+fit50 <- lmer(y ~ xc + (1|student.f) ,data = df)
+summary(fit50)
 ```
 
 ```
 Linear mixed model fit by REML 
 t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
-Formula: y ~ xc + (1 | school.f/student.f)
+Formula: y ~ xc + (1 | student.f)
+   Data: df
+
+REML criterion at convergence: 106.7
+
+Scaled residuals: 
+       Min         1Q     Median         3Q        Max 
+-4.366e-04 -1.088e-04 -2.499e-05  1.146e-04  5.233e-04 
+
+Random effects:
+ Groups    Name        Variance  Std.Dev.
+ student.f (Intercept) 1.865e+01 4.319140
+ Residual              2.714e-07 0.000521
+Number of obs: 20, groups:  student.f, 19
+
+Fixed effects:
+             Estimate Std. Error        df t value Pr(>|t|)    
+(Intercept) 2.269e+01  9.909e-01 1.958e+01    22.9 1.33e-15 ***
+xc          4.000e+00  7.368e-04 1.958e+01  5429.0  < 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+   (Intr)
+xc 0.000 
+```
+
+```r
+
+fit5a <- lmer(y ~ xc + (1|school.f) + (1|student.f) ,data = df)
+summary(fit5a)
+```
+
+```
+Linear mixed model fit by REML 
+t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
+Formula: y ~ xc + (1 | school.f) + (1 | student.f)
    Data: df
 
 REML criterion at convergence: 87.7
@@ -412,11 +468,50 @@ Scaled residuals:
 -1.1903 -0.4498  0.1506  0.4296  0.8199 
 
 Random effects:
- Groups             Name        Variance Std.Dev.
- student.f:school.f (Intercept)  1.534   1.239   
- school.f           (Intercept) 31.524   5.615   
- Residual                        1.264   1.124   
-Number of obs: 20, groups:  student.f:school.f, 19; school.f, 4
+ Groups    Name        Variance Std.Dev.
+ student.f (Intercept)  1.534   1.239   
+ school.f  (Intercept) 31.524   5.615   
+ Residual               1.264   1.124   
+Number of obs: 20, groups:  student.f, 19; school.f, 4
+
+Fixed effects:
+            Estimate Std. Error      df t value Pr(>|t|)    
+(Intercept)  22.8265     2.8332  2.9080   8.057  0.00447 ** 
+xc            2.5433     0.2947 14.8480   8.629 3.62e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+   (Intr)
+xc -0.005
+```
+
+Variance components with students nested within schools.
+
+```r
+
+fit5b <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
+summary(fit5a)
+```
+
+```
+Linear mixed model fit by REML 
+t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
+Formula: y ~ xc + (1 | school.f) + (1 | student.f)
+   Data: df
+
+REML criterion at convergence: 87.7
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.1903 -0.4498  0.1506  0.4296  0.8199 
+
+Random effects:
+ Groups    Name        Variance Std.Dev.
+ student.f (Intercept)  1.534   1.239   
+ school.f  (Intercept) 31.524   5.615   
+ Residual               1.264   1.124   
+Number of obs: 20, groups:  student.f, 19; school.f, 4
 
 Fixed effects:
             Estimate Std. Error      df t value Pr(>|t|)    
@@ -431,10 +526,12 @@ xc -0.005
 ```
 
 
+### Add teachig style
+
 ```r
 # Add teaching style
-fit6 <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
-summary(fit6)
+fit5c <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
+summary(fit5c)
 ```
 
 ```
@@ -470,35 +567,57 @@ xc           0.007
 styl.ffrmls -0.707 -0.014
 ```
 
-
-
-
-## Random intercepts {.tabset .tabset-fade .tabset-pills}  
-
-Random intercepts at for schools.
-
-### Assignment {-}
-
-
-
-### Solution {-}
-
+### Compare the models
 
 ```r
-# Use 
+anova(fit50,fit5a,fit5b,fit5c)
+```
 
+```
+Data: df
+Models:
+object: y ~ xc + (1 | student.f)
+..1: y ~ xc + (1 | school.f) + (1 | student.f)
+..2: y ~ xc + (1 | school.f/student.f)
+..3: y ~ xc + style.f + (1 | school.f/student.f)
+       Df     AIC     BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
+object  4  90.834  94.817 -41.417   82.834                         
+..1     5 100.832 105.810 -45.416   90.832 0.0000      1     1.0000
+..2     5 100.832 105.810 -45.416   90.832 0.0000      0     1.0000
+..3     6 101.745 107.720 -44.873   89.745 1.0863      1     0.2973
 ```
 
 
-
-## Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
+# Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
 
 Random intercepts & slopes
 
-### Assignment {-}
+## Assignment 
+
+Try to see wether teaching style explains slope variance of schools.
+
+## Solution
 
 
-### Code {-}
+```r
+# Add teaching style as a random slope
+fit5d <- lmer(y ~ xc + style.f + (style.f |school.f/student.f) ,data = df)
+summary(fit5d)
+```
+
+
+
+
+# Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
+
+Multilevel model for change
+
+## Assignment 
+
+
+
+
+## Solution 
 
 
 ```r
@@ -506,39 +625,16 @@ Random intercepts & slopes
 
 ```
 
-### Solution
 
 
-## Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
-
-Random intercepts & slopes
-
-### Assignment {-}
-
-
-### Code {-}
-
-
-```r
-# Use 
-
-```
-
-### Solution {-}
+# Time as a predictor {.tabset .tabset-fade .tabset-pills}  
 
 
 
-
-# **Best practices**
-
-## Centering predictors {.tabset .tabset-fade .tabset-pills}  
-
-To center... or not?
-
-### Assignment {-}
+## Assignment 
 
 
-### Code {-}
+## Solution 
 
 
 ```r
@@ -546,65 +642,5 @@ To center... or not?
 
 ```
 
-### Solution {-}
 
-
-## Modeling strategies {.tabset .tabset-fade .tabset-pills}  
-
-Start small ... or start full?
-
-### Assignment {-}
-
-
-### Code {-}
-
-
-```r
-# Use 
-
-```
-
-### Solution {-}
-
-
-
-
-## Testing random effects {.tabset .tabset-fade .tabset-pills}  
-
-Start small ... or start full?
-
-### Assignment {-}
-
-
-### Code {-}
-
-
-```r
-# Use 
-
-```
-
-### Solution {-}
-
-
-
-
-# **Multilevel model for change**
-
-## Time as a predictor {.tabset .tabset-fade .tabset-pills}  
-
-Random intercepts & slopes
-
-### Assignment {-}
-
-
-### Code {-} 
-
-
-```r
-# Use 
-
-```
-
-### Solution {-}
 
