@@ -57,6 +57,9 @@ Many different terms are used to describe some form of the hierarchical *General
 
 **Always**  
 
+Well, ok, have a look at the different [multilevel structures one can encounter in real data](http://www.bristol.ac.uk/cmm/learning/multilevel-models/data-structures.html)
+
+
 ### Why? {-}
 
 The *General Linear Model*  (the classical regression models and ANOVA variations) are just special cases of GeMMs in which the following assumptions hold (cf. Field):
@@ -118,52 +121,215 @@ Here is a (non-exhaustive) list of great sources:
 * [Inferential Methods for Linear Mixed Models](http://www.maths.bath.ac.uk/~jjf23/mixchange/index.html)
     + Includes examples for multivariate mutilevel modeling
 * [R to MLwiN](https://www.jstatsoft.org/article/view/v072i10)
-* [Power Analysis for Random Effects Models ()](http://jakewestfall.org/publications/JWK_AnnRev.pdf)
+* [Power Analysis for Random Effects Models (Westfall)](http://jakewestfall.org/publications/JWK_AnnRev.pdf)
     + Provides `R`, `SPSS` and `SAS` code
     + Also see the [online tool](https://jakewestfall.shinyapps.io/two_factor_power/) and [additional topics supplement](http://jakewestfall.org/publications/JWK_AnnRev_Appendix.pdf)
 * [Stan. Bayesian inference for multilevel GLMMs and more](http://mc-stan.org/interfaces/)
 * [Generalized Additive Mixed Models (GAMM) for for modeling timeseries data](http://www.sfs.uni-tuebingen.de/~jvanrij/Tutorial/GAMM.html)
-    + (Examples)[http://www.sfs.uni-tuebingen.de/~hbaayen/publications/supplementCave.pdf]
+    + [Examples](http://www.sfs.uni-tuebingen.de/~hbaayen/publications/supplementCave.pdf)
 * [Multilevel Analysis (Snijder & Boskers)](https://stats.idre.ucla.edu/other/examples/ma-snijders/)
     + Code examples from book in `HLM`, `Mplus`, `SAS`, `Stata`
 
 
-# **Random Effect Models**
+# Classical linear regression  {.tabset .tabset-fade .tabset-pills}  
 
-## Variance Components  {.tabset .tabset-fade .tabset-pills}  
+OLS regression of the example on the slides.
 
-OLS vs. Random intercepts 
-
-### Assignment {-}
+## Assignment
  
+Let's repeat the example form the slides. Import the data from [Github](https://github.com/FredHasselman/Mixedmodels/tree/master/Cologne/AssignmentData), or run the code below and load it directly into R^[Importing SPSS files into R can sometimes lead to strange behaviour, because SPSS assigns both *variable* and *value* labels, which most software packages cannot handle. If you can't get rid of the labels, use `rio::export(df,"filename.ext")` and set `.ext` to `.csv` or `.xlsx`, then reload the file using `df <- rio::import("filename.ext")`].
 
-### Code {-}
+```{r}
+library(rio)
+df <- rio::import("https://github.com/FredHasselman/Mixedmodels/raw/master/Cologne/AssignmentData/IntroductionData.sav")
 
-```{r varcomp, collapse=TRUE}
-# Use 
+# Change some variables to nominal factors
+df$student.f <- factor(df$student)
+df$school.f  <- factor(df$school, levels = 1:4, labels = paste("school",1:4))
+df$style.f   <- factor(df$style, levels = c(-.5,.5), labels = c("informal style","formal style"))
 
-
+# To mimic the slides, we analyse relative to school 4
+df$school.f <- relevel(df$school.f, ref = "school 4")
 ```
 
-### Solution {-}
+### Look at the data. 
+
++ Plot language ability `x` (at the start of the year) against `y` (at the end of the year) and mark each school with a shape or colour. 
++ If you are new to `R`, just look at the solution and copy and run the code. Plot the predicted values.
+
+### Fit the global model.
+Using the basic `R` stats functions we can fit a regression model for the entire sample: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
+
++ Use the function `lm`. 
++ If you are unfamiliar with the function, look at the manual entry by typing `?lm` in the console.
++ Plot the predicted values.
+
+### Fit the model with intercepts for schools.
+
+This means adding the `school.f` variable. The use of factors in `R` is very convenient, you do not have to create dummy variables, `R` will do this for you. So we are looking for a model of the type: $Y_{i} = \beta_{0j} + \beta_{1} X_{ij} + \varepsilon_{ij},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ j = 1,2,\ldots,4$. 
+
++ Plot the predicted values.
+
+### Fit the model with intercepts for teaching style.
+
+To fit the model with an intercept for each teaching style, we simply add the factor `style.f` variable. So we are looking for a model of the type: $Y_{ij} = \beta_{0k} + \beta_{1} X_{ik} + \varepsilon_{ik},\ \text{with}\ i = 1,2,\ldots,20\ \text{and}\ k = 1,2$. 
+
++ On the slides, the model was fitted to the grand-mean centered version of `x`. We will get back to centering data, the variable is in the dataset as `xc`. You could also calculate the variable yoursef using the function `scale`:
+```{r, eval=FALSE}
+df$xc <- scale(df$x, scale = FALSE)
+```
+
++ Plot the predicted values.
+
+### Fit the model with an both school and teaching style effects.
+
+To fit the model with both `school` and `teaching style` effects and just 1 random error term, we need dummy variables. They are already in the dataset. We should get a model of the type: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \beta_{2}\ Style_{i} + \beta_{3}\ d1_{i} + \beta_{4}\ d2_{i} +  \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
+
++ Plot the predicted values.
+
+### Compare the models using the function `anova()`.
+
+
+
+## Solution
+
+### Plot the data
+```{r q1, collapse=TRUE}
+# Using ggplot2
+library(ggplot2)
+ggplot(df, aes(x=x,y=y,group=school.f)) +
+  geom_point(aes(colour=style.f,shape=school.f), size=5) +
+  theme_bw() 
+```
+
+### Fit the global model.
+```{r q2}
+# Fit the model and display a summary of the results
+fit1 <- lm(y ~ x, data=df)
+summary(fit1)
+
+# Plot fit 1
+df$pred1 <- predict(fit1)
+ggplot(df, aes(x=x,y=pred1, colour = school.f, shape=school.f)) +
+  geom_point(aes(y=y)) +
+  geom_line(aes(group=school.f)) +
+  ggtitle("Model 1", subtitle = fit1$call) +
+  theme_bw()
+```
+
+### Fit the model with intercepts for schools.
+```{r q3}
+# Fit the model and display a summary of the results
+fit2 <- lm(y ~ x + school.f, data=df)
+summary(fit2)
+
+# Plot fit 2
+df$pred2 <- predict(fit2)
+ggplot(df, aes(x=x,y=pred2, colour = school.f, shape=school.f)) +
+  geom_point(aes(y=y)) +
+  geom_line(aes(group=school.f)) +
+  ggtitle("Model 2", subtitle = fit2$call) +
+  theme_bw()
+```
+
+### Fit the model with intercepts for teaching style.
+```{r q4}
+# Fit the model and display a summary of the results
+fit3 <- lm(y ~ xc + style.f, data=df)
+summary(fit3)
+
+# Plot fit 3
+df$pred3 <- predict(fit3)
+ggplot(df, aes(x=xc,y=pred3,colour=style.f,shape=school.f)) +
+  geom_point(aes(y=y)) +
+  geom_line(aes()) +
+  ggtitle("Model 3", subtitle = fit3$call) +
+  theme_bw()
+```
+
+### Fit the model with an both school and teaching style effects.
+```{r q5}
+# Fit the model and display a summary of the results
+fit4 <- lm(y ~ xc + style.f + d1 + d2, data=df)
+summary(fit4)
+
+# Plot fit 4
+df$pred4 <- predict(fit4)
+ggplot(df, aes(x=xc,y=pred4,shape=style.f,colour=school.f)) +
+  geom_point(aes(y=y)) +
+  geom_line() +
+  ggtitle("Model 4", subtitle = fit4$call) +
+  theme_bw()
+```
+
+### Compare model fit
+```{r q6}
+# Compare the models
+anova(fit1,fit2, fit3, fit4)
+```
+
+
+# Variance Components  {.tabset .tabset-fade .tabset-pills}  
+
+Now we will start using random effects...
+
+## Assignment 
+
+### The empty multilevel model
+
+Fit a model that considers the variation in the intercepts of the schools as a random variation around the grand mean.
+
++ Schools are Level 2: We assume the school intercepts can be considered to be drawn from a normal distribution with $\mu = 0$ and unknown $\sigma_{u}^2$. Parameter $\sigma_{u}^2$ will be estimated from the data. 
++ Student scores will be considered to vary randomly around the mean of their respective schools. We will assume students in each school vary around the school mean in the same way, a normal distribution with $\mu = 0$ and unknown $\sigma_{e}^2$.
++ Use the function `lmer()` to model the data. It looks similar to `lm()` but you need to specify the random effect structure. Look at the manual, or if you can't get it to work, at the solutions.
++ Add teaching style as a factor.
++ Compare the the single level model to the variance components model
+
+
+## Solution
+
+### The empty multilevel model
+
+Variance components, seperate random effects for students and schools.
+```{r q7a, message=FALSE, warning=FALSE}
+library(lme4)
+library(lmerTest)
+
+fit5a <- lmer(y ~ xc + (1|school.f) + (1|student.f) ,data = df)
+summary(fit5a)
+````
+
+Variance components with students nested within schools.
+```{r q7b, message=FALSE, warning=FALSE}
+
+fit5b <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
+summary(fit5a)
+````
+
+```{r q7b, message=FALSE, warning=FALSE}
+# Add teaching style
+fit6 <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
+summary(fit6)
+```
+
+
 
 
 ## Random intercepts {.tabset .tabset-fade .tabset-pills}  
 
-Random intercepts at multiple levels
+Random intercepts at for schools.
 
 ### Assignment {-}
 
 
-### Code {-}
+
+### Solution {-}
 
 ```{r 1rand, collapse=TRUE}
 # Use 
 
-
 ```
 
-### Solution {-}
 
 
 ## Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
