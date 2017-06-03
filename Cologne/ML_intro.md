@@ -152,7 +152,7 @@ df$xc <- scale(df$x, scale = FALSE)
 
 + Plot the predicted values.
 
-### Fit the model with an both school and teaching style effects.
+### Fit the model with both school and teaching style effects.
 
 To fit the model with both `school` and `teaching style` effects and just 1 random error term, we need dummy variables. They are already in the dataset. We should get a model of the type: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \beta_{2}\ Style_{i} + \beta_{3}\ d1_{i} + \beta_{4}\ d2_{i} +  \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
 
@@ -415,118 +415,94 @@ library(lme4)
 library(lmerTest)
 
 # Only students
-fit50 <- lmer(y ~ xc + (1|student.f) ,data = df)
+fit50 <- lmer(y ~ (1|student.f) ,data = df)
 summary(fit50)
 ```
 
 ```
-Linear mixed model fit by REML 
-t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
-Formula: y ~ xc + (1 | student.f)
+Linear mixed model fit by REML ['lmerMod']
+Formula: y ~ (1 | student.f)
    Data: df
 
-REML criterion at convergence: 106.7
+REML criterion at convergence: 138.6
 
 Scaled residuals: 
-       Min         1Q     Median         3Q        Max 
--4.366e-04 -1.088e-04 -2.499e-05  1.146e-04  5.233e-04 
+     Min       1Q   Median       3Q      Max 
+-0.85816 -0.25410 -0.00844  0.34250  0.55385 
 
 Random effects:
- Groups    Name        Variance  Std.Dev.
- student.f (Intercept) 1.865e+01 4.319140
- Residual              2.714e-07 0.000521
+ Groups    Name        Variance Std.Dev.
+ student.f (Intercept) 72.697   8.526   
+ Residual               8.025   2.833   
 Number of obs: 20, groups:  student.f, 19
 
 Fixed effects:
-             Estimate Std. Error        df t value Pr(>|t|)    
-(Intercept) 2.269e+01  9.909e-01 1.958e+01    22.9 1.33e-15 ***
-xc          4.000e+00  7.368e-04 1.958e+01  5429.0  < 2e-16 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Correlation of Fixed Effects:
-   (Intr)
-xc 0.000 
+            Estimate Std. Error t value
+(Intercept)   23.240      2.058   11.29
 ```
 
 ```r
 
-fit5a <- lmer(y ~ xc + (1|school.f) + (1|student.f) ,data = df)
+fit5a <- lmer(y ~ (1|school.f) + (1|student.f) ,data = df)
 summary(fit5a)
 ```
 
 ```
-Linear mixed model fit by REML 
-t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
-Formula: y ~ xc + (1 | school.f) + (1 | student.f)
+Linear mixed model fit by REML ['lmerMod']
+Formula: y ~ (1 | school.f) + (1 | student.f)
    Data: df
 
-REML criterion at convergence: 87.7
+REML criterion at convergence: 117.6
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.1903 -0.4498  0.1506  0.4296  0.8199 
+-1.2420 -0.5947  0.1494  0.5248  1.1867 
 
 Random effects:
  Groups    Name        Variance Std.Dev.
- student.f (Intercept)  1.534   1.239   
- school.f  (Intercept) 31.524   5.615   
- Residual               1.264   1.124   
+ student.f (Intercept)  6.636   2.576   
+ school.f  (Intercept) 82.043   9.058   
+ Residual               7.987   2.826   
 Number of obs: 20, groups:  student.f, 19; school.f, 4
 
 Fixed effects:
-            Estimate Std. Error      df t value Pr(>|t|)    
-(Intercept)  22.8265     2.8332  2.9080   8.057  0.00447 ** 
-xc            2.5433     0.2947 14.8480   8.629 3.62e-07 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Correlation of Fixed Effects:
-   (Intr)
-xc -0.005
+            Estimate Std. Error t value
+(Intercept)   22.935      4.612   4.973
 ```
 
 Variance components with students nested within schools.
 
 ```r
 
-fit5b <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
+fit5b <- lmer(y ~ (1|school.f/student.f) ,data = df)
 summary(fit5a)
 ```
 
 ```
-Linear mixed model fit by REML 
-t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
-Formula: y ~ xc + (1 | school.f) + (1 | student.f)
+Linear mixed model fit by REML ['lmerMod']
+Formula: y ~ (1 | school.f) + (1 | student.f)
    Data: df
 
-REML criterion at convergence: 87.7
+REML criterion at convergence: 117.6
 
 Scaled residuals: 
     Min      1Q  Median      3Q     Max 
--1.1903 -0.4498  0.1506  0.4296  0.8199 
+-1.2420 -0.5947  0.1494  0.5248  1.1867 
 
 Random effects:
  Groups    Name        Variance Std.Dev.
- student.f (Intercept)  1.534   1.239   
- school.f  (Intercept) 31.524   5.615   
- Residual               1.264   1.124   
+ student.f (Intercept)  6.636   2.576   
+ school.f  (Intercept) 82.043   9.058   
+ Residual               7.987   2.826   
 Number of obs: 20, groups:  student.f, 19; school.f, 4
 
 Fixed effects:
-            Estimate Std. Error      df t value Pr(>|t|)    
-(Intercept)  22.8265     2.8332  2.9080   8.057  0.00447 ** 
-xc            2.5433     0.2947 14.8480   8.629 3.62e-07 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-Correlation of Fixed Effects:
-   (Intr)
-xc -0.005
+            Estimate Std. Error t value
+(Intercept)   22.935      4.612   4.973
 ```
 
 
-### Add teachig style
+### Add pre-measure and teachig style
 
 ```r
 # Add teaching style
@@ -576,16 +552,213 @@ anova(fit50,fit5a,fit5b,fit5c)
 ```
 Data: df
 Models:
-object: y ~ xc + (1 | student.f)
-..1: y ~ xc + (1 | school.f) + (1 | student.f)
-..2: y ~ xc + (1 | school.f/student.f)
+object: y ~ (1 | student.f)
+..1: y ~ (1 | school.f) + (1 | student.f)
+..2: y ~ (1 | school.f/student.f)
 ..3: y ~ xc + style.f + (1 | school.f/student.f)
-       Df     AIC     BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)
-object  4  90.834  94.817 -41.417   82.834                         
-..1     5 100.832 105.810 -45.416   90.832 0.0000      1     1.0000
-..2     5 100.832 105.810 -45.416   90.832 0.0000      0     1.0000
-..3     6 101.745 107.720 -44.873   89.745 1.0863      1     0.2973
+       Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(>Chisq)    
+object  3 147.88 150.87 -70.942  141.884                             
+..1     4 130.38 134.36 -61.188  122.376 19.508      1  1.002e-05 ***
+..2     4 130.38 134.36 -61.188  122.376  0.000      0          1    
+..3     6 101.75 107.72 -44.873   89.745 32.631      2  8.210e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
+
+
+### Diagnostic plots
+
+
+```r
+# Using plot
+plot(fit5c, resid(., scaled=TRUE) ~ fitted(.) | style.f, abline = 0)
+```
+
+![](ML_intro_files/figure-html/q7e-1.png)<!-- -->
+
+```r
+
+# box-plots of residuals by school
+plot(fit5c, school.f ~ resid(., scaled=TRUE))
+```
+
+![](ML_intro_files/figure-html/q7e-2.png)<!-- -->
+
+```r
+# observed versus fitted values by school
+plot(fit5c, y ~ fitted(.) | school.f, abline = c(0,1))
+```
+
+![](ML_intro_files/figure-html/q7e-3.png)<!-- -->
+
+```r
+# residuals by x, separated by school
+plot(fit5c, resid(., scaled=TRUE) ~ x | school.f, abline = 0)
+```
+
+![](ML_intro_files/figure-html/q7e-4.png)<!-- -->
+
+```r
+
+# Use package lattice
+require("lattice")
+qqmath(fit5c, id=0.05)
+```
+
+![](ML_intro_files/figure-html/q7e-5.png)<!-- -->
+
+### Profiling
+
+
+```r
+pr <- profile(fit5c, optimizer="Nelder_Mead", which="beta_")
+
+# Profiled confidence intervals
+(confint(pr) -> CIpr)
+```
+
+```
+                        2.5 %    97.5 %
+(Intercept)         12.775993 28.125883
+xc                   1.964605  3.345726
+style.fformal style -6.098200 15.617406
+```
+
+```r
+# Zeta functions
+xyplot(pr, absVal=TRUE)
+```
+
+![](ML_intro_files/figure-html/q7f-1.png)<!-- -->
+
+```r
+xyplot(pr, conf = c(0.95, 0.99), main = "95% and 99% profile() intervals")
+```
+
+![](ML_intro_files/figure-html/q7f-2.png)<!-- -->
+
+```r
+# Density plots
+densityplot(pr, main="densityplot( profile(lmer(..)) )")
+```
+
+![](ML_intro_files/figure-html/q7f-3.png)<!-- -->
+
+```r
+# correlation matrix
+splom(pr)
+```
+
+![](ML_intro_files/figure-html/q7f-4.png)<!-- -->
+
+### Plot random and fixed effects 
+
+Use the `strenge jacke` package ([sjPlot](http://www.strengejacke.de/sjPlot/sjp.lmer/)).
+
+```r
+library(sjPlot)
+# Random effects
+sjp.lmer(fit5c, sort.est = "sort.all", facet.grid = FALSE)
+```
+
+![](ML_intro_files/figure-html/q8-1.png)<!-- -->![](ML_intro_files/figure-html/q8-2.png)<!-- -->
+
+```r
+
+# Plot fixed effects
+sjp.lmer(fit5c, type = "fe")
+```
+
+![](ML_intro_files/figure-html/q8-3.png)<!-- -->
+
+```r
+
+# Plot fixed effects
+sjp.lmer(fit5c, type = "fe")
+```
+
+![](ML_intro_files/figure-html/q8-4.png)<!-- -->
+
+```r
+
+# Plot standardised fixed effects
+sjp.lmer(fit5c, type = "fe.std")
+```
+
+![](ML_intro_files/figure-html/q8-5.png)<!-- -->
+
+```r
+
+# plot fixed effects slopes
+sjp.lmer(fit5c, type = "fe.slope", vars = c("xc", "style.f"))
+```
+
+![](ML_intro_files/figure-html/q8-6.png)<!-- -->![](ML_intro_files/figure-html/q8-7.png)<!-- -->
+
+```r
+
+# plot effects
+sjp.lmer(fit5c, type = "eff")
+```
+
+![](ML_intro_files/figure-html/q8-8.png)<!-- -->
+
+```r
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", vars = "xc")
+```
+
+![](ML_intro_files/figure-html/q8-9.png)<!-- -->
+
+```r
+sjp.lmer(fit5c, type = "pred", vars = "style.f")
+```
+
+![](ML_intro_files/figure-html/q8-10.png)<!-- -->
+
+```r
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", vars = c("xc", "style.f"))
+```
+
+![](ML_intro_files/figure-html/q8-11.png)<!-- -->
+
+```r
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", 
+         facet.grid = FALSE, 
+         vars = c("xc", "style.f"))
+```
+
+![](ML_intro_files/figure-html/q8-12.png)<!-- -->
+
+```r
+
+# plot fixed effects depending on group levels
+sjp.lmer(fit5c, type = "ri.slope")
+```
+
+![](ML_intro_files/figure-html/q8-13.png)<!-- -->![](ML_intro_files/figure-html/q8-14.png)<!-- -->![](ML_intro_files/figure-html/q8-15.png)<!-- -->![](ML_intro_files/figure-html/q8-16.png)<!-- -->
+
+```r
+
+# plot fixed effects correlation matrix
+sjp.lmer(fit5c, type = "fe.cor")
+```
+
+![](ML_intro_files/figure-html/q8-17.png)<!-- -->
+
+```r
+
+# plot qq-plot of random effects
+sjp.lmer(fit5c, type = "re.qq")
+```
+
+![](ML_intro_files/figure-html/q8-18.png)<!-- -->
+
 
 
 # Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
@@ -594,9 +767,16 @@ Random intercepts & slopes
 
 ## Assignment 
 
-Try to see wether teaching style explains slope variance of schools.
+### Teaching style
+
++ Try to see whether teaching style explains slope variance of schools.
+
++ Our dataset is too small!
+
 
 ## Solution
+
+### Teaching style
 
 
 ```r
@@ -606,41 +786,40 @@ summary(fit5d)
 ```
 
 
-
-
-# Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
-
-Multilevel model for change
-
-## Assignment 
-
-
-
-
-## Solution 
-
-
 ```r
-# Use 
-
+# This does work
+fit5d <- lmer(y ~ xc  + (xc |school.f) ,data = df)
+summary(fit5d)
 ```
 
-
-
-# Time as a predictor {.tabset .tabset-fade .tabset-pills}  
-
-
-
-## Assignment 
-
-
-## Solution 
-
-
-```r
-# Use 
-
 ```
+Linear mixed model fit by REML 
+t-tests use  Satterthwaite approximations to degrees of freedom ['lmerMod']
+Formula: y ~ xc + (xc | school.f)
+   Data: df
 
+REML criterion at convergence: 87.8
 
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.7989 -0.3788  0.2166  0.6738  1.1152 
+
+Random effects:
+ Groups   Name        Variance  Std.Dev. Corr 
+ school.f (Intercept) 3.214e+01 5.66915       
+          xc          8.153e-04 0.02855  -1.00
+ Residual             2.714e+00 1.64733       
+Number of obs: 20, groups:  school.f, 4
+
+Fixed effects:
+            Estimate Std. Error      df t value Pr(>|t|)    
+(Intercept)  22.8784     2.8584  2.9170   8.004   0.0045 ** 
+xc            2.5018     0.2883 15.5630   8.678 2.35e-07 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+   (Intr)
+xc -0.050
+```
 

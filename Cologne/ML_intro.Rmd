@@ -181,7 +181,7 @@ df$xc <- scale(df$x, scale = FALSE)
 
 + Plot the predicted values.
 
-### Fit the model with an both school and teaching style effects.
+### Fit the model with both school and teaching style effects.
 
 To fit the model with both `school` and `teaching style` effects and just 1 random error term, we need dummy variables. They are already in the dataset. We should get a model of the type: $Y_{i} = \beta_{0} + \beta_{1} X_{i} + \beta_{2}\ Style_{i} + \beta_{3}\ d1_{i} + \beta_{4}\ d2_{i} +  \varepsilon_{i},\ \text{with}\ i = 1,2,\ldots,20$.
 
@@ -308,22 +308,22 @@ library(lme4)
 library(lmerTest)
 
 # Only students
-fit50 <- lmer(y ~ xc + (1|student.f) ,data = df)
+fit50 <- lmer(y ~ (1|student.f) ,data = df)
 summary(fit50)
 
-fit5a <- lmer(y ~ xc + (1|school.f) + (1|student.f) ,data = df)
+fit5a <- lmer(y ~ (1|school.f) + (1|student.f) ,data = df)
 summary(fit5a)
 ````
 
 Variance components with students nested within schools.
 ```{r q7b, message=FALSE, warning=FALSE}
 
-fit5b <- lmer(y ~ xc + (1|school.f/student.f) ,data = df)
+fit5b <- lmer(y ~ (1|school.f/student.f) ,data = df)
 summary(fit5a)
 ````
 
 
-### Add teachig style
+### Add pre-measure and teachig style
 ```{r q7c, message=FALSE, warning=FALSE}
 # Add teaching style
 fit5c <- lmer(y ~ xc + style.f + (1|school.f/student.f) ,data = df)
@@ -336,58 +336,115 @@ anova(fit50,fit5a,fit5b,fit5c)
 ```
 
 
+### Diagnostic plots
+
+```{r q7e, message=FALSE, warning=FALSE}
+# Using plot
+plot(fit5c, resid(., scaled=TRUE) ~ fitted(.) | style.f, abline = 0)
+
+# box-plots of residuals by school
+plot(fit5c, school.f ~ resid(., scaled=TRUE))
+# observed versus fitted values by school
+plot(fit5c, y ~ fitted(.) | school.f, abline = c(0,1))
+# residuals by x, separated by school
+plot(fit5c, resid(., scaled=TRUE) ~ x | school.f, abline = 0)
+
+# Use package lattice
+require("lattice")
+qqmath(fit5c, id=0.05)
+```
+
+### Profiling
+
+```{r q7f, message=FALSE, warning=FALSE}
+pr <- profile(fit5c, optimizer="Nelder_Mead", which="beta_")
+
+# Profiled confidence intervals
+(confint(pr) -> CIpr)
+# Zeta functions
+xyplot(pr, absVal=TRUE)
+xyplot(pr, conf = c(0.95, 0.99), main = "95% and 99% profile() intervals")
+# Density plots
+densityplot(pr, main="densityplot( profile(lmer(..)) )")
+# correlation matrix
+splom(pr)
+
+```
+
+### Plot random and fixed effects 
+
+Use the `strenge jacke` package ([sjPlot](http://www.strengejacke.de/sjPlot/sjp.lmer/)).
+```{r q8, message=FALSE, warning=FALSE}
+library(sjPlot)
+# Random effects
+sjp.lmer(fit5c, sort.est = "sort.all", facet.grid = FALSE)
+
+# Plot fixed effects
+sjp.lmer(fit5c, type = "fe")
+
+# Plot fixed effects
+sjp.lmer(fit5c, type = "fe")
+
+# Plot standardised fixed effects
+sjp.lmer(fit5c, type = "fe.std")
+
+# plot fixed effects slopes
+sjp.lmer(fit5c, type = "fe.slope", vars = c("xc", "style.f"))
+
+# plot effects
+sjp.lmer(fit5c, type = "eff")
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", vars = "xc")
+sjp.lmer(fit5c, type = "pred", vars = "style.f")
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", vars = c("xc", "style.f"))
+
+# plot effects
+sjp.lmer(fit5c, type = "pred", 
+         facet.grid = FALSE, 
+         vars = c("xc", "style.f"))
+
+# plot fixed effects depending on group levels
+sjp.lmer(fit5c, type = "ri.slope")
+
+# plot fixed effects correlation matrix
+sjp.lmer(fit5c, type = "fe.cor")
+
+# plot qq-plot of random effects
+sjp.lmer(fit5c, type = "re.qq")
+
+```
+
+
+
 # Random intercepts & slopes {.tabset .tabset-fade .tabset-pills}  
 
 Random intercepts & slopes
 
 ## Assignment 
 
-Try to see wether teaching style explains slope variance of schools.
+### Teaching style
+
++ Try to see whether teaching style explains slope variance of schools.
+
++ Our dataset is too small!
+
 
 ## Solution
 
-```{r 2rand, message=FALSE, warning=FALSE,eval=FALSE}
+### Teaching style
+
+```{r 2randa, message=FALSE, warning=FALSE,eval=FALSE}
 # Add teaching style as a random slope
 fit5d <- lmer(y ~ xc + style.f + (style.f |school.f/student.f) ,data = df)
 summary(fit5d)
 ```
 
-
-
-
-# Cross-level interactions {.tabset .tabset-fade .tabset-pills}  
-
-Multilevel model for change
-
-## Assignment 
-
-
-
-
-## Solution 
-
-```{r crosslvl, collapse=TRUE}
-# Use 
-
-
+```{r 2randb, message=FALSE, warning=FALSE,eval=TRUE}
+# This does work
+fit5d <- lmer(y ~ xc  + (xc |school.f) ,data = df)
+summary(fit5d)
 ```
-
-
-
-# Time as a predictor {.tabset .tabset-fade .tabset-pills}  
-
-
-
-## Assignment 
-
-
-## Solution 
-
-```{r change, collapse=TRUE}
-# Use 
-
-
-```
-
-
 
